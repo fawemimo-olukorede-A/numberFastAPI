@@ -1,7 +1,16 @@
 from fastapi import FastAPI, HTTPException
-import requests
+from pydantic import BaseModel
+import json
 
 app = FastAPI()
+
+class NumberResponse(BaseModel):
+    number: float
+    is_prime: bool
+    is_perfect: bool
+    properties: list
+    digit_sum: int
+    fun_fact: str
 
 def is_prime(n):
     if n < 2:
@@ -12,47 +21,43 @@ def is_prime(n):
     return True
 
 def is_perfect(n):
+    if n < 1:
+        return False
     return sum([i for i in range(1, n) if n % i == 0]) == n
 
-def digit_sum(n):
-    return sum(int(digit) for digit in str(abs(n)))
-
-def get_fun_fact(n):
-    url = f"http://numbersapi.com/{n}/math?json"
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            return response.json().get("text", "No fun fact found.")
-    except:
-        return "Could not fetch a fun fact."
-    return "No fun fact available."
-
-@app.get("/api/classify-number")
-def classify_number(number: str):
-    # Validate input: Ensure it's a number
-    try:
-        num = int(number)
-    except ValueError:
-        raise HTTPException(status_code=400, detail={"number": number, "error": True})
-
-    # Determine properties
+def classify_number(number):
     properties = []
-    if is_prime(num):
-        properties.append("prime")
-    if is_perfect(num):
-        properties.append("perfect")
-    if num == sum(int(d) ** len(str(num)) for d in str(num)):  # Armstrong check
-        properties.append("armstrong")
-    properties.append("odd" if num % 2 != 0 else "even")
+    if number % 2 == 0:
+        properties.append("even")
+    else:
+        properties.append("odd")
 
-    # Build response
-    response = {
-        "number": num,
-        "is_prime": is_prime(num),
-        "is_perfect": is_perfect(num),
-        "properties": properties,
-        "digit_sum": digit_sum(num),
-        "fun_fact": get_fun_fact(num)
-    }
+    if is_prime(number):
+        properties.append("prime")
     
-    return response
+    if is_perfect(number):
+        properties.append("perfect")
+
+    digit_sum = sum(int(digit) for digit in str(abs(int(number))))
+
+    fun_fact = f"{number} is an interesting number!"
+
+    return {
+        "number": number,
+        "is_prime": is_prime(number),
+        "is_perfect": is_perfect(number),
+        "properties": properties,
+        "digit_sum": digit_sum,
+        "fun_fact": fun_fact
+    }
+
+@app.get("/classify-number")
+async def classify(number: str):
+    try:
+        number = float(number)
+        return NumberResponse(**classify_number(number))
+    except ValueError:
+        return {
+            "number": number,
+            "error": "Invalid number format"
+        }, 400
