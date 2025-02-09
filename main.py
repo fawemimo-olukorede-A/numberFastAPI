@@ -76,6 +76,7 @@ async def classify_number(number: str = Query(default="")):
         )
 
     try:
+        # Try to convert the input to a float first
         n = float(number)
     except ValueError:
         return JSONResponse(
