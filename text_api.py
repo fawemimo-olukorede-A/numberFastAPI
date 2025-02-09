@@ -11,16 +11,12 @@ def test_valid_integer():
 
 def test_negative_number():
     response = client.get("/api/classify-number?number=-5")
-    assert response.status_code == 200
-    assert response.json()["number"] == -5
-    assert response.json()["is_prime"] == is_prime(5)  # Check absolute value
+    assert response.status_code == 400  # Negative numbers are invalid
 
 def test_floating_point_number():
     response = client.get("/api/classify-number?number=3.14")
-    assert response.status_code == 200
-    assert response.json()["number"] == 3.14
-    assert response.json()["is_prime"] is None  # Non-integer, so no prime check
+    assert response.status_code == 400  # Floating-point numbers are invalid
 
 def test_invalid_input():
     response = client.get("/api/classify-number?number=abc")
-    assert response.status_code == 400
+    assert response.status_code == 400  # Non-numeric input is invalid
