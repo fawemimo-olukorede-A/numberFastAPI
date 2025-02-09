@@ -2,6 +2,8 @@ from fastapi import FastAPI
 import requests
 import math
 
+#python code
+
 app = FastAPI()
 
 def is_prime(n):
