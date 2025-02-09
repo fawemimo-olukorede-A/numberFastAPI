@@ -13,6 +13,10 @@ def test_negative_number():
     response = client.get("/api/classify-number?number=-5")
     assert response.status_code == 200  # Should return 200
 
+def test_floating_point_number():
+    response = client.get("/api/classify-number?number=3.14")
+    assert response.status_code == 200  # Should return 200
+
 def test_invalid_input():
     response = client.get("/api/classify-number?number=abc")
-    assert response.status_code == 400  # Expect 422, not 400
+    assert response.status_code == 400  
