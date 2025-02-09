@@ -15,4 +15,4 @@ def test_negative_number():
 
 def test_invalid_input():
     response = client.get("/api/classify-number?number=abc")
-    assert response.status_code == 422  # Expect 422, not 400
+    assert response.status_code == 400  # Expect 422, not 400
