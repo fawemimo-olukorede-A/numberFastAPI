@@ -76,11 +76,18 @@ async def classify_number(number: str = Query(default="")):
         )
 
     try:
-        n = int(number)
+        n = float(number)
+        if n.is_integer():
+            n = int(n)  # Convert whole numbers to int
+        else:
+            return JSONResponse(
+                content=ErrorResp(number=number, error=True).dict(),
+                status_code=422  # Reject floating-point numbers
+            )
     except ValueError:
         return JSONResponse(
             content=ErrorResp(number=number, error=True).dict(),
-            status_code=400
+            status_code=422
         )
 
     # Fetch fun fact with error handling
