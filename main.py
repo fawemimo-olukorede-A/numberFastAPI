@@ -1,63 +1,52 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import json
+from flask import Flask, jsonify, request
+import requests
+import math
 
-app = FastAPI()
-
-class NumberResponse(BaseModel):
-    number: float
-    is_prime: bool
-    is_perfect: bool
-    properties: list
-    digit_sum: int
-    fun_fact: str
+app = Flask(__name__)
 
 def is_prime(n):
     if n < 2:
         return False
-    for i in range(2, int(n ** 0.5) + 1):
+    for i in range(2, int(math.sqrt(n)) + 1):
         if n % i == 0:
             return False
     return True
 
 def is_perfect(n):
-    if n < 1:
-        return False
-    return sum([i for i in range(1, n) if n % i == 0]) == n
+    return sum(i for i in range(1, n) if n % i == 0) == n
 
-def classify_number(number):
-    properties = []
-    if number % 2 == 0:
-        properties.append("even")
-    else:
-        properties.append("odd")
+def is_armstrong(n):
+    num_str = str(n)
+    num_len = len(num_str)
+    return sum(int(digit) ** num_len for digit in num_str) == n
 
-    if is_prime(number):
-        properties.append("prime")
+@app.route('/api/classify-number', methods=['GET'])
+def classify_number():
+    num = request.args.get('number')
     
-    if is_perfect(number):
-        properties.append("perfect")
+    if not num or not num.isdigit():
+        return jsonify({"number": num, "error": True}), 400
 
-    digit_sum = sum(int(digit) for digit in str(abs(int(number))))
+    num = int(num)
+    properties = []
+    
+    if is_armstrong(num):
+        properties.append("armstrong")
+    properties.append("odd" if num % 2 != 0 else "even")
 
-    fun_fact = f"{number} is an interesting number!"
+    # Fetch fun fact
+    fun_fact_url = f"http://numbersapi.com/{num}/math"
+    fun_fact_response = requests.get(fun_fact_url)
+    fun_fact = fun_fact_response.text if fun_fact_response.status_code == 200 else "No fun fact available"
 
-    return {
-        "number": number,
-        "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
+    return jsonify({
+        "number": num,
+        "is_prime": is_prime(num),
+        "is_perfect": is_perfect(num),
         "properties": properties,
-        "digit_sum": digit_sum,
+        "digit_sum": sum(int(digit) for digit in str(num)),
         "fun_fact": fun_fact
-    }
-
-@app.get("/classify-number")
-async def classify(number: str):
-    try:
-        number = float(number)
-        return NumberResponse(**classify_number(number))
-    except ValueError:
-        return {
-            "number": number,
-            "error": "Invalid number format"
-        }, 400
+    })
+from flask_cors import CORS
+app = Flask(__name__)
+CORS(app)
