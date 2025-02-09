@@ -9,8 +9,8 @@ app = FastAPI()
 
 class Resp(BaseModel):
     number: Union[int, float]
-    is_prime: bool
-    is_perfect: bool
+    is_prime: Union[bool, None]  # None for non-integer numbers
+    is_perfect: Union[bool, None]  # None for non-integer numbers
     properties: List[str]
     digit_sum: int
     fun_fact: str
@@ -44,8 +44,8 @@ def is_perfect(n: int) -> bool:
                 total += other
     return total == n
 
-def digit_sum(n: int) -> int:
-    n = abs(int(n))
+def digit_sum(n: Union[int, float]) -> int:
+    n = abs(int(n))  # Convert to integer and take absolute value
     total = 0
     while n > 0:
         total += n % 10
@@ -93,14 +93,23 @@ async def classify_number(number: str = Query(default="")):
         fun_fact = "No fun fact available."
 
     # Determine properties
-    properties = ["even" if int(n) % 2 == 0 else "odd"]
-    if is_armstrong(int(n)):
-        properties.append("armstrong")
+    properties = []
+    if n == int(n):  # Check if the number is an integer
+        n_int = int(n)
+        properties.append("even" if n_int % 2 == 0 else "odd")
+        if is_armstrong(n_int):
+            properties.append("armstrong")
+        is_prime_result = is_prime(abs(n_int))  # Handle negative numbers
+        is_perfect_result = is_perfect(abs(n_int))  # Handle negative numbers
+    else:
+        # For non-integer numbers, skip prime, perfect, and Armstrong checks
+        is_prime_result = None
+        is_perfect_result = None
 
     return Resp(
         number=n,
-        is_prime=is_prime(int(n)),
-        is_perfect=is_perfect(int(n)),
+        is_prime=is_prime_result,
+        is_perfect=is_perfect_result,
         properties=properties,
         digit_sum=digit_sum(n),
         fun_fact=fun_fact
