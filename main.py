@@ -3,12 +3,12 @@ from pydantic import BaseModel
 import math
 import requests
 from fastapi.responses import JSONResponse
-from typing import List
+from typing import List, Union
 
 app = FastAPI()
 
 class Resp(BaseModel):
-    number: int
+    number: Union[int, float]
     is_prime: bool
     is_perfect: bool
     properties: List[str]
@@ -45,7 +45,7 @@ def is_perfect(n: int) -> bool:
     return total == n
 
 def digit_sum(n: int) -> int:
-    n = abs(n)
+    n = abs(int(n))
     total = 0
     while n > 0:
         total += n % 10
@@ -77,13 +77,6 @@ async def classify_number(number: str = Query(default="")):
 
     try:
         n = float(number)
-        if n.is_integer():
-            n = int(n)  # Convert whole numbers to int
-        else:
-            return JSONResponse(
-                content=ErrorResp(number=number, error=True).dict(),
-                status_code=422  # Reject floating-point numbers
-            )
     except ValueError:
         return JSONResponse(
             content=ErrorResp(number=number, error=True).dict(),
@@ -99,14 +92,14 @@ async def classify_number(number: str = Query(default="")):
         fun_fact = "No fun fact available."
 
     # Determine properties
-    properties = ["even" if n % 2 == 0 else "odd"]
-    if is_armstrong(n):
+    properties = ["even" if int(n) % 2 == 0 else "odd"]
+    if is_armstrong(int(n)):
         properties.append("armstrong")
 
     return Resp(
         number=n,
-        is_prime=is_prime(n),
-        is_perfect=is_perfect(n),
+        is_prime=is_prime(int(n)),
+        is_perfect=is_perfect(int(n)),
         properties=properties,
         digit_sum=digit_sum(n),
         fun_fact=fun_fact
