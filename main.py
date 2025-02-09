@@ -7,15 +7,6 @@ from typing import List
 
 app = FastAPI()
 
-# Enable CORS
-from fastapi.middleware.cors import CORSMiddleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 class Resp(BaseModel):
     number: int
     is_prime: bool
@@ -85,7 +76,6 @@ async def classify_number(number: str = Query(default="")):
         )
 
     try:
-        # Try to convert the input to an integer
         n = int(number)
     except ValueError:
         return JSONResponse(
