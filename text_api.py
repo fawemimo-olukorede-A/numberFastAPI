@@ -11,7 +11,8 @@ def test_valid_integer():
 
 def test_negative_number():
     response = client.get("/api/classify-number?number=-5")
-    assert response.status_code == 400  # Negative numbers are invalid
+    assert response.status_code == 200  # Negative numbers are valid
+    assert response.json()["number"] == -5
 
 def test_floating_point_number():
     response = client.get("/api/classify-number?number=3.14")
