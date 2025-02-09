@@ -7,6 +7,15 @@ from typing import List
 
 app = FastAPI()
 
+# Enable CORS
+from fastapi.middleware.cors import CORSMiddleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class Resp(BaseModel):
     number: int
     is_prime: bool
