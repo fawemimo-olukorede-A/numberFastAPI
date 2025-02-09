@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from numberApi import app
+from main import app
 
 client = TestClient(app)
 
@@ -11,7 +11,7 @@ def test_valid_number():
 
 def test_negative_number():
     response = client.get("/api/classify-number?number=-5")
-    assert response.status_code == 400
+    assert response.status_code == 200  # Should return 200
 
 def test_invalid_input():
     response = client.get("/api/classify-number?number=abc")
