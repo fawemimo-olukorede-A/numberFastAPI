@@ -87,7 +87,7 @@ async def classify_number(number: str = Query(default="")):
     except ValueError:
         return JSONResponse(
             content=ErrorResp(number=number, error=True).dict(),
-            status_code=422
+            status_code=400
         )
 
     # Fetch fun fact with error handling
