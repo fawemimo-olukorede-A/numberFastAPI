@@ -96,7 +96,7 @@ git push origin main
 ### **3️⃣ Test Your Live API**
 Once deployed, visit:
 ```
-https://your-app-name.onrender.com/api/classify-number?number=371
+https://numberFastAPI.onrender.com/api/classify-number?number=371
 ```
 
 ---
