@@ -1,52 +1,58 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import requests
-import math
-
-#python code
 
 app = FastAPI()
 
 def is_prime(n):
     if n < 2:
         return False
-    for i in range(2, int(math.sqrt(n)) + 1):
+    for i in range(2, int(n ** 0.5) + 1):
         if n % i == 0:
             return False
     return True
 
 def is_perfect(n):
-    if n < 1:
-        return False
-    return sum(i for i in range(1, n) if n % i == 0) == n
+    return sum([i for i in range(1, n) if n % i == 0]) == n
 
-def is_armstrong(n):
-    digits = [int(digit) for digit in str(n)]
-    power = len(digits)
-    return sum(d ** power for d in digits) == n
+def digit_sum(n):
+    return sum(int(digit) for digit in str(abs(n)))
 
 def get_fun_fact(n):
+    url = f"http://numbersapi.com/{n}/math?json"
     try:
-        response = requests.get(f"http://numbersapi.com/{n}/math", timeout=5)
-        return response.text if response.status_code == 200 else "No fun fact found"
-    except requests.RequestException:
-        return "No fun fact found"
+        response = requests.get(url)
+        if response.status_code == 200:
+            return response.json().get("text", "No fun fact found.")
+    except:
+        return "Could not fetch a fun fact."
+    return "No fun fact available."
 
 @app.get("/api/classify-number")
 def classify_number(number: str):
-    if not number.lstrip('-').isdigit():
-        return {"number": number, "error": True}
+    # Validate input: Ensure it's a number
+    try:
+        num = int(number)
+    except ValueError:
+        raise HTTPException(status_code=400, detail={"number": number, "error": True})
 
-    number = int(number)
-    properties = ["armstrong" if is_armstrong(number) else "", "odd" if number % 2 != 0 else "even"]
-    properties = list(filter(None, properties))
+    # Determine properties
+    properties = []
+    if is_prime(num):
+        properties.append("prime")
+    if is_perfect(num):
+        properties.append("perfect")
+    if num == sum(int(d) ** len(str(num)) for d in str(num)):  # Armstrong check
+        properties.append("armstrong")
+    properties.append("odd" if num % 2 != 0 else "even")
 
-    response_data = {
-        "number": number,
-        "is_prime": is_prime(number),
-        "is_perfect": is_perfect(number),
+    # Build response
+    response = {
+        "number": num,
+        "is_prime": is_prime(num),
+        "is_perfect": is_perfect(num),
         "properties": properties,
-        "digit_sum": sum(int(d) for d in str(number)),
-        "fun_fact": get_fun_fact(number)
+        "digit_sum": digit_sum(num),
+        "fun_fact": get_fun_fact(num)
     }
-
-    return response_data
+    
+    return response
